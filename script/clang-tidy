@@ -334,7 +334,7 @@ def main():
                 "Error please install clang-apply-replacements-18 or clang-apply-replacements.\n",
                 file=sys.stderr,
             )
-        except:
+        except Exception:
             print("Error applying fixes.\n", file=sys.stderr)
             raise
 

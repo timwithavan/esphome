@@ -166,7 +166,7 @@ def _get_changed_files_github_actions() -> list[str] | None:
             return _get_changed_files_from_command(
                 ["git", "diff", "HEAD~1..HEAD", "--name-only"]
             )
-        except:  # noqa: E722
+        except Exception:
             # Fall back to the original method if this fails
             pass
 
@@ -191,7 +191,7 @@ def changed_files(branch: str | None = None) -> list[str]:
             merge_base = splitlines_no_ends(get_output(*command))[0]
             break
         # pylint: disable=bare-except
-        except:  # noqa: E722
+        except Exception:
             pass
     else:
         raise ValueError("Git not configured")
