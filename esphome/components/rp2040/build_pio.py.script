@@ -32,7 +32,7 @@ if PIO_FILES:
         print("PIO ASSEMBLY COMPILER")
     try:
         PIOASM_DIR = platform.get_package_dir("tool-pioasm-rp2040-earlephilhower")
-    except:
+    except Exception:
         print("tool-pioasm-rp2040-earlephilhower not supported on your system!")
         sys.exit()
 

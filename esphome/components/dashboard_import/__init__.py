@@ -105,14 +105,15 @@ def import_config(
             raise ValueError(f"Error while fetching {url}: {e}") from e
 
         contents = req.text
-        yaml = YAML()
-        loaded_yaml = yaml.load(contents)
-        if (
-            "name_add_mac_suffix" in loaded_yaml["esphome"]
-            and loaded_yaml["esphome"]["name_add_mac_suffix"]
-        ):
-            loaded_yaml["esphome"]["name_add_mac_suffix"] = False
-            name_val = loaded_yaml["esphome"]["name"]
+        # Use a safe YAML loader for untrusted remote content
+        yaml_loader = YAML(typ="safe")
+        loaded_yaml = yaml_loader.load(contents)
+        esphome_cfg = (
+            loaded_yaml.get("esphome") if isinstance(loaded_yaml, dict) else None
+        )
+        if isinstance(esphome_cfg, dict) and esphome_cfg.get("name_add_mac_suffix"):
+            esphome_cfg["name_add_mac_suffix"] = False
+            name_val = esphome_cfg["name"]
             sub_pattern = re.compile(r"\$\{?([a-zA-Z-_]+)\}?")
             if match := sub_pattern.match(name_val):
                 name_sub = match.group(1)
@@ -123,9 +124,9 @@ def import_config(
                         f"Name substitution {name_sub} not found in substitutions"
                     )
             else:
-                loaded_yaml["esphome"]["name"] = name
+                esphome_cfg["name"] = name
             if friendly_name is not None:
-                friendly_name_val = loaded_yaml["esphome"]["friendly_name"]
+                friendly_name_val = esphome_cfg["friendly_name"]
                 if match := sub_pattern.match(friendly_name_val):
                     friendly_name_sub = match.group(1)
                     if friendly_name_sub in loaded_yaml["substitutions"]:
@@ -135,10 +136,10 @@ def import_config(
                             f"Friendly name substitution {friendly_name_sub} not found in substitutions"
                         )
                 else:
-                    loaded_yaml["esphome"]["friendly_name"] = friendly_name
+                    esphome_cfg["friendly_name"] = friendly_name
 
             with p.open("w", encoding="utf8") as f:
-                yaml.dump(loaded_yaml, f)
+                yaml_loader.dump(loaded_yaml, f)
         else:
             with p.open("w", encoding="utf8") as f:
                 f.write(contents)
